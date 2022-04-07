@@ -15,6 +15,7 @@ class App extends Component {
     this.setState({ posts });
   }
 
+  // 先请求服务器，再进行前端修改，为保守(Pessimistic)操作
   handleAdd = async () => {
     const obj = { title: "a", body: "b" };
     const { data: post } = await axios.post(apiEndpoint, obj);
@@ -34,10 +35,18 @@ class App extends Component {
   };
 
   handleDelete = async (post) => {
-    await axios.delete(apiEndpoint + "/" + post.id);
+    const originalPost = this.state.posts;
 
     const posts = this.state.posts.filter((p) => p.id !== post.id);
     this.setState({ posts });
+
+    try {
+      await axios.delete(apiEndpoint + "/" + post.id);
+      throw new Error("");
+    } catch (ex) {
+      alert("Something failed while deleting a post!");
+      this.setState({ posts: originalPost });
+    }
   };
 
   render() {
